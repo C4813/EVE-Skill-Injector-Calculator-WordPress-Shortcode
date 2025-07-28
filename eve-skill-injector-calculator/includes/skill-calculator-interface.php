@@ -136,6 +136,8 @@ function calculateExtractors() {
     let extractorSellTotal = usable * extractorSell;
     let injectorBuyTotal = usable * largeBuy;
     let injectorSellTotal = usable * largeSell;
+    let profitBuySide = injectorBuyTotal - extractorSellTotal;
+    let profitSellSide = injectorSellTotal - extractorBuyTotal;
 
     document.getElementById("extractorResult").innerHTML = `
         <span>Usable Extractors:</span> <span style="font-weight:normal">${usable}</span><br><br>
@@ -143,19 +145,12 @@ function calculateExtractors() {
         <span>Extractor Jita Sell:</span> <span style="font-weight:normal">${extractorSellTotal.toLocaleString()} ISK</span><br><br>
         <span>Injector Jita Buy:</span> <span style="font-weight:normal">${injectorBuyTotal.toLocaleString()} ISK</span><br>
         <span>Injector Jita Sell:</span> <span style="font-weight:normal">${injectorSellTotal.toLocaleString()} ISK</span><br><br>
-        <table style='width:100%; border-collapse: collapse; margin-top: 10px; text-align:center;'>
-          <thead>
-            <tr>
-              <th style='border-bottom: 1px solid #ccc; font-weight:bold;'>Scenario</th>
-              <th style='border-bottom: 1px solid #ccc; font-weight:bold;'>Profit</th>
-            </tr>
-          </thead>
-          <tbody style='font-weight:normal;'>
-            <tr><td>Buy Extractors (Buy Value),<br> Sell Injectors (Buy Value)</td><td>${(injectorBuyTotal - extractorBuyTotal).toLocaleString()} ISK</td></tr>
-            <tr><td>Buy Extractors (Buy Value),<br> Sell Injectors (Sell Value)</td><td>${(injectorSellTotal - extractorBuyTotal).toLocaleString()} ISK</td></tr>
-            <tr><td>Buy Extractors (Sell Value),<br> Sell Injectors (Sell Value)</td><td>${(injectorSellTotal - extractorSellTotal).toLocaleString()} ISK</td></tr>
-            <tr><td>Buy Extractors (Sell Value),<br> Sell Injectors (Buy Value)</td><td>${(injectorBuyTotal - extractorSellTotal).toLocaleString()} ISK</td></tr>
-          </tbody>
+        <table style='width:100%; border-collapse: collapse; margin-top: 10px;'>
+          <tr><th style='text-align:center; border-bottom: 1px solid #ccc; font-weight:bold;'>Scenario</th><th style='text-align:center; border-bottom: 1px solid #ccc; font-weight:bold;'>Profit</th></tr>
+          <tr><td style='padding: 4px 0; text-align:center;'>Buy Extractors (Buy Value),<br>Sell Injectors (Buy Value)</td><td style='text-align:center;'>${(injectorBuyTotal - extractorBuyTotal).toLocaleString()} ISK</td></tr>
+          <tr><td style='padding: 4px 0; text-align:center;'>Buy Extractors (Buy Value),<br>Sell Injectors (Sell Value)</td><td style='text-align:center;'>${(injectorSellTotal - extractorBuyTotal).toLocaleString()} ISK</td></tr>
+          <tr><td style='padding: 4px 0; text-align:center;'>Buy Extractors (Sell Value),<br>Sell Injectors (Sell Value)</td><td style='text-align:center;'>${(injectorSellTotal - extractorSellTotal).toLocaleString()} ISK</td></tr>
+          <tr><td style='padding: 4px 0; text-align:center;'>Buy Extractors (Sell Value),<br>Sell Injectors (Buy Value)</td><td style='text-align:center;'>${(injectorBuyTotal - extractorSellTotal).toLocaleString()} ISK</td></tr>
         </table>`;
 }
 </script>
@@ -164,84 +159,98 @@ function calculateExtractors() {
     <h2 style="text-align:center;">Skill Injector Calculator</h2>
 
     <!-- Calculator 1 -->
-    <div style="margin-bottom: 30px;">
-        <h3>a. How many Injectors do I need?</h3>
-        <label>Current Skill Points:<br><input type="number" id="currentSP" class="input-field no-spinner"></label><br><br>
-        <label>Skill Points to inject:<br><input type="number" id="injectSP" class="input-field no-spinner"></label><br><br>
+    <div>
+        <h4 style="text-align: center;">a. How many Injectors do I need?</h3>
+        <label>Current Skill Points<br><input type="number" id="currentSP" class="input-field no-spinner"></label><br>
+        <label>Skill Points to inject<br><input type="number" id="injectSP" class="input-field no-spinner"></label><br>
         <button onclick="calculateInjectors()" class="calc-button">Calculate Injectors Needed</button>
         <div id="result" class="result"></div>
     </div>
-    <hr style="margin: 30px 0;">
+    <hr>
 
     <!-- Calculator 2 -->
-    <div style="margin-bottom: 30px;">
-        <h3>b. How much SP will I gain?</h3>
-        <label>Current Skill Points:<br><input type="number" id="spOwned" class="input-field no-spinner"></label><br><br>
-        <label>Large Injectors:<br><input type="number" id="largeInjectors" class="input-field no-spinner"></label><br><br>
-        <label>Small Injectors:<br><input type="number" id="smallInjectors" class="input-field no-spinner"></label><br><br>
+    <div>
+        <h4 style="text-align: center;">b. How much SP will I gain?</h3>
+        <label>Current Skill Points<br><input type="number" id="spOwned" class="input-field no-spinner"></label><br>
+        <label>Large Injectors<br><input type="number" id="largeInjectors" class="input-field no-spinner"></label><br>
+        <label>Small Injectors<br><input type="number" id="smallInjectors" class="input-field no-spinner"></label><br>
         <button onclick="calculateSPGain()" class="calc-button">Calculate SP Gained</button>
         <div id="spGainResult" class="result"></div>
     </div>
-    <hr style="margin: 30px 0;">
+    <hr>
 
     <!-- Calculator 3 -->
-    <div style="margin-bottom: 30px;">
-        <h3>c. I want to reach X SP total</h3>
-        <label>Current Skill Points:<br><input type="number" id="currentSPGoal" class="input-field no-spinner"></label><br><br>
-        <label>Target Skill Points:<br><input type="number" id="targetSPGoal" class="input-field no-spinner"></label><br><br>
+    <div>
+        <h4 style="text-align: center;">c. I want to reach X SP total</h3>
+        <label>Current Skill Points<br><input type="number" id="currentSPGoal" class="input-field no-spinner"></label><br>
+        <label>Target Skill Points<br><input type="number" id="targetSPGoal" class="input-field no-spinner"></label><br>
         <button onclick="calculateGoalInjectors()" class="calc-button">Calculate Injectors to Reach Goal</button>
         <div id="goalResult" class="result"></div>
     </div>
-    <hr style="margin: 30px 0;">
-
+    <hr>
     <!-- Calculator 4 -->
-    <div style="margin-bottom: 30px;">
-        <h3>d. Skill Extractors Profit Check</h3>
-        <label>Current Skill Points:<br><input type="number" id="spExtract" class="input-field no-spinner"></label><br><br>
+    <div>
+        <h4 style="text-align: center;">d. Skill Extractors Profit Check</h3>
+        <label>Current Skill Points<br><input type="number" id="spExtract" class="input-field no-spinner"></label><br>
         <button onclick="calculateExtractors()" class="calc-button">Calculate Extractors</button>
         <div id="extractorResult" class="result"></div>
     </div>
+    <hr>
 </div>
-
 <style>
+/* Center labels and reduce bottom margin */
+label {
+  display: block;
+  text-align: center;
+}
+
+/* Style input fields: width, padding, margin, no spinner arrows */
 .input-field {
-    width: 100%;
-    padding: 8px;
-    font-size: 1rem;
-    margin-bottom: 10px;
-    box-sizing: border-box;
+  width: 50%;
+  padding: 6px;
+  font-size: 1rem;
+  margin: auto;
+  display: block;
+  box-sizing: border-box;
 }
 
 /* Remove number input arrows for Chrome, Safari, Edge */
 .input-field.no-spinner::-webkit-outer-spin-button,
 .input-field.no-spinner::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* Remove number input arrows for Firefox */
 .input-field.no-spinner {
-    -moz-appearance: textfield;
+  -moz-appearance: textfield;
 }
 
+/* Style buttons: width, padding, margin, font size */
 .calc-button {
-    width: 100%;
-    padding: 12px;
-    background: #f0f0f0;
-    color: #000;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    appearance: none;
+  width: 50%;
+  padding: 10px;
+  font-size: 1.3rem;
+  margin: auto;
+  display: block;
+  background: #f0f0f0;
+  color: #000;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  appearance: none;
 }
+
 .calc-button:hover {
-    background: #e0e0e0;
-    color: #000;
+  background: #e0e0e0;
+  color: #000;
 }
+
+/* Result text */
 .result {
-    margin-top: 10px;
-    font-weight: bold;
+  margin-top: 10px;
+  font-weight: bold;
+  text-align: center; /* add this */
 }
 </style>
