@@ -6,18 +6,24 @@ const smallBuy = <?php echo json_encode($smallBuy); ?>;
 const extractorSell = <?php echo json_encode($extractorSell); ?>;
 const extractorBuy = <?php echo json_encode($extractorBuy); ?>;
 
+function getGain(sp, thresholds, gains) {
+    for (let i = 0; i < thresholds.length; i++) {
+        if (sp < thresholds[i]) return gains[i];
+        
+    }
+    return gains[gains.length - 1];
+}
+
 function getLargeGain(sp) {
-    if (sp < 5000000) return 500000;
-    if (sp < 50000000) return 400000;
-    if (sp < 80000000) return 300000;
-    return 150000;
+    const thresholds = [5000000, 50000000, 80000000];
+    const gains = [500000, 400000, 300000, 150000];
+    return getGain(sp, thresholds, gains);
 }
 
 function getSmallGain(sp) {
-    if (sp < 5000000) return 100000;
-    if (sp < 50000000) return 80000;
-    if (sp < 80000000) return 60000;
-    return 30000;
+    const thresholds = [5000000, 50000000, 80000000];
+    const gains = [100000, 80000, 60000, 30000];
+    return getGain(sp, thresholds, gains);
 }
 
 function calculateInjectors() {
@@ -163,7 +169,7 @@ function calculateExtractors() {
         <h4 style="text-align: center;">a. How many Injectors do I need?</h3>
         <label>Current Skill Points<br><input type="number" id="currentSP" class="input-field no-spinner"></label><br>
         <label>Skill Points to inject<br><input type="number" id="injectSP" class="input-field no-spinner"></label><br>
-        <button onclick="calculateInjectors()" class="calc-button">Calculate Injectors Needed</button>
+        <button onclick="calculateInjectors()" class="calc-button">Calculate Required Injectors</button>
         <div id="result" class="result"></div>
     </div>
     <hr>
@@ -174,7 +180,7 @@ function calculateExtractors() {
         <label>Current Skill Points<br><input type="number" id="spOwned" class="input-field no-spinner"></label><br>
         <label>Large Injectors<br><input type="number" id="largeInjectors" class="input-field no-spinner"></label><br>
         <label>Small Injectors<br><input type="number" id="smallInjectors" class="input-field no-spinner"></label><br>
-        <button onclick="calculateSPGain()" class="calc-button">Calculate SP Gained</button>
+        <button onclick="calculateSPGain()" class="calc-button">Calculate SP Gain</button>
         <div id="spGainResult" class="result"></div>
     </div>
     <hr>
@@ -184,7 +190,7 @@ function calculateExtractors() {
         <h4 style="text-align: center;">c. I want to reach X SP total</h3>
         <label>Current Skill Points<br><input type="number" id="currentSPGoal" class="input-field no-spinner"></label><br>
         <label>Target Skill Points<br><input type="number" id="targetSPGoal" class="input-field no-spinner"></label><br>
-        <button onclick="calculateGoalInjectors()" class="calc-button">Calculate Injectors to Reach Goal</button>
+        <button onclick="calculateGoalInjectors()" class="calc-button">Calculate Required Injectors</button>
         <div id="goalResult" class="result"></div>
     </div>
     <hr>
@@ -192,7 +198,7 @@ function calculateExtractors() {
     <div>
         <h4 style="text-align: center;">d. Skill Extractors Profit Check</h3>
         <label>Current Skill Points<br><input type="number" id="spExtract" class="input-field no-spinner"></label><br>
-        <button onclick="calculateExtractors()" class="calc-button">Calculate Extractors</button>
+        <button onclick="calculateExtractors()" class="calc-button">Calculate Character Profitability</button>
         <div id="extractorResult" class="result"></div>
     </div>
     <hr>
