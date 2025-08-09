@@ -1,0 +1,92 @@
+/* ================================
+   EVE Skill Injector Calculator
+   (scoped, no generic selectors)
+   ================================ */
+
+.eve-sic {
+  max-width: 520px;
+  margin: auto;
+}
+
+.eve-sic__title { text-align: center; }
+
+.eve-sic__panel { margin-top: 12px; }
+.eve-sic__panel-title { text-align: center; margin: 0 0 8px; }
+
+/* Inputs */
+.eve-sic__label {
+  display: block;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.eve-sic__input {
+  width: 60%;
+  padding: 6px;
+  font-size: 1rem;
+  margin: 0 auto;
+  display: block;
+  box-sizing: border-box;
+}
+
+/* Remove number input arrows */
+.eve-sic__input.no-spinner::-webkit-outer-spin-button,
+.eve-sic__input.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.eve-sic__input.no-spinner { -moz-appearance: textfield; }
+
+/* Buttons */
+.eve-sic__btn {
+  width: 60%;
+  padding: 10px;
+  font-size: 1.1rem;
+  margin: 8px auto;
+  display: block;
+  background: #f0f0f0;
+  color: #000;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background .3s ease;
+  appearance: none;
+}
+.eve-sic__btn:hover { background: #e0e0e0; }
+
+/* Results (center everything) */
+.eve-sic__result {
+  margin-top: 10px;
+  font-weight: bold;
+  text-align: center;
+}
+.eve-sic__value { font-weight: normal; }
+.eve-sic__note { margin-top: 6px; font-weight: normal; font-size: 0.9rem; color: #444; }
+
+/* Metrics grid (extractor section) */
+.eve-sic__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 8px 0;
+}
+.eve-sic__metric { text-align: center; }
+
+/* Scenario table */
+.eve-sic__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.eve-sic__table th,
+.eve-sic__table td {
+  border-bottom: 1px solid #ccc;
+  padding: 6px 4px;
+}
+
+/* Force headings bold + centered; body normal + centered */
+.eve-sic__table th { font-weight: bold !important; text-align: center !important; }
+.eve-sic__table td { font-weight: normal !important; text-align: center !important; }
+
+/* Hidden until calculated */
+.eve-sic .is-hidden { display: none !important; }
