@@ -2,7 +2,7 @@
 /*
 Plugin Name: EVE Skill Injector Calculator
 Description: Adds a shortcode [eve_skill_calculator] to display EVE Online skill injector calculators with ISK value using ESI.
-Version: 1.3
+Version: 1.4
 Author: C4813
 */
 
