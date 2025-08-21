@@ -1,188 +1,395 @@
-(function(){
-  'use strict';
+/* EVE Skill Injector Calculator – script.js
+ * Vanilla JS. No innerHTML. No inline styles.
+ */
 
-  const REST = (window.EVE_SIC_DATA && window.EVE_SIC_DATA.rest) || { url:'', nonce:'' };
+(function () {
+  "use strict";
 
-  function enforcePositiveIntegerInput(el) {
-    el.setAttribute('min','1'); el.setAttribute('step','1');
-    el.setAttribute('inputmode','numeric'); el.setAttribute('pattern','\\d*');
-    el.addEventListener('input', () => {
-      const digits = el.value.replace(/[^\d]/g, '');
-      el.value = digits === '' || digits === '0' ? '1' : digits.replace(/^0+/, '') || '1';
-    });
-    el.addEventListener('paste', (e) => {
-      const t = (e.clipboardData || window.clipboardData).getData('text');
-      if (!/^[1-9]\d*$/.test(t)) e.preventDefault();
-    });
-    el.addEventListener('blur', () => {
-      let n = parseInt(el.value, 10); if (!Number.isFinite(n) || n < 1) n = 1; el.value = String(n);
-    });
-    el.addEventListener('keydown', (e) => {
-      const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','Tab','Enter'];
-      if (allowed.includes(e.key) || /^\d$/.test(e.key)) return; e.preventDefault();
-    });
-  }
+  // ===== Utilities =====
+  const $ = (id) => document.getElementById(id);
 
-  function $(id){ return document.getElementById(id); }
-  function setText(id, text){ const el = $(id); if (el) el.textContent = text; }
-  function show(id){ const el = $(id); if (el){ el.classList.remove('is-hidden'); el.setAttribute('aria-hidden','false'); } }
-  function toISK(n){ return Number(n||0).toLocaleString(); }
-  function clearChildren(node){ while (node && node.firstChild) node.removeChild(node.firstChild); }
+  const setText = (id, text) => {
+    const el = $(id);
+    if (el) el.textContent = String(text ?? "");
+  };
 
-  function getGain(sp, thresholds, gains){ for (let i=0;i<thresholds.length;i++) if (sp < thresholds[i]) return gains[i]; return gains[gains.length-1]; }
-  function getLargeGain(sp){ return getGain(sp, [5000000, 50000000, 80000000], [500000, 400000, 300000, 150000]); }
-  function getSmallGain(sp){ return getGain(sp, [5000000, 50000000, 80000000], [100000, 80000, 60000, 30000]); }
+  const show = (id) => {
+    const el = $(id);
+    if (!el) return;
+    el.classList.remove("is-hidden");
+    el.setAttribute("aria-hidden", "false");
+  };
 
-  async function fetchPrices(){
-    if (!REST.url) return null;
-    try{
-      const res = await fetch(REST.url, { headers: { 'X-WP-Nonce': REST.nonce || '' } });
-      if (!res.ok) return null;
-      return await res.json();
-    }catch(_){ return null; }
-  }
-
-  async function calculateInjectors(){
-    const prices = await fetchPrices();
-    show('result');
-    if (!prices){ setText('resNote','Prices unavailable. Please try again.'); return; }
-
-    let currentSP = parseInt($('currentSP').value,10);
-    let injectSP  = parseInt($('injectSP').value,10);
-    if (!Number.isFinite(currentSP) || !Number.isFinite(injectSP) || currentSP < 1 || injectSP < 1){
-      setText('resNote','Please enter valid numbers.'); return;
+  const hideRow = (valueId) => {
+    const el = $(valueId);
+    if (!el) return;
+    const row = el.closest("div");
+    if (row) {
+      row.classList.add("is-hidden");
+      row.setAttribute("aria-hidden", "true");
     }
+  };
 
-    let remaining = injectSP, largeInjectors = 0, smallInjectors = 0;
-    while (remaining > 0){
-      const gainLarge = getLargeGain(currentSP);
-      const gainSmall = getSmallGain(currentSP);
-      if (remaining >= gainLarge){ largeInjectors++; currentSP += gainLarge; remaining -= gainLarge; }
-      else if (remaining >= gainSmall){ smallInjectors++; currentSP += gainSmall; remaining -= gainSmall; }
-      else { smallInjectors++; currentSP += gainSmall; remaining = 0; }
-    }
+  const getInt = (id) => {
+    const el = $(id);
+    if (!el) return NaN;
+    const n = parseInt(el.value, 10);
+    return Number.isFinite(n) ? n : NaN;
+  };
 
-    const L = prices[40520] || prices['40520'] || {buy:0,sell:0};
-    const S = prices[45635] || prices['45635'] || {buy:0,sell:0};
-    const totalBuy  = largeInjectors*(L.buy||0)  + smallInjectors*(S.buy||0);
-    const totalSell = largeInjectors*(L.sell||0) + smallInjectors*(S.sell||0);
+  const clearChildren = (el) => {
+    if (!el) return;
+    while (el.firstChild) el.removeChild(el.firstChild);
+  };
 
-    setText('resLarge', String(largeInjectors));
-    setText('resSmall', String(smallInjectors));
-    setText('resBuy',   `${toISK(totalBuy)} ISK`);
-    setText('resSell',  `${toISK(totalSell)} ISK`);
-    setText('resNote', `${largeInjectors} Large @ ${toISK(L.buy)} buy / ${toISK(L.sell)} sell` +
-                       (smallInjectors ? `, ${smallInjectors} Small @ ${toISK(S.buy)} buy / ${toISK(S.sell)} sell` : ''));
+  // Create a table row with two cells; supports "\n" in left cell
+  const appendTwoColRow = (tbody, leftText, rightText) => {
+    if (!tbody) return;
+    const tr = document.createElement("tr");
+    const td1 = document.createElement("td");
+    const td2 = document.createElement("td");
+
+    const parts = String(leftText).split("\n");
+    parts.forEach((part, idx) => {
+      td1.appendChild(document.createTextNode(part));
+      if (idx < parts.length - 1) td1.appendChild(document.createElement("br"));
+    });
+
+    td2.textContent = rightText;
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tbody.appendChild(tr);
+  };
+
+  // Stylable Buy/Sell note block
+  const setBuySellNote = (id, buyISK, sellISK) => {
+    const el = $(id);
+    if (!el) return;
+
+    clearChildren(el);
+    el.classList.add("note-buy-sell");
+
+    const buyLabel = document.createElement("span");
+    buyLabel.className = "note-label";
+    buyLabel.textContent = "Buy: ";
+
+    const buyValue = document.createElement("span");
+    buyValue.className = "note-value";
+    buyValue.textContent = `${fmtNum(buyISK)} ISK`;
+
+    const sep = document.createTextNode(" · ");
+
+    const sellLabel = document.createElement("span");
+    sellLabel.className = "note-label";
+    sellLabel.textContent = "Sell: ";
+
+    const sellValue = document.createElement("span");
+    sellValue.className = "note-value";
+    sellValue.textContent = `${fmtNum(sellISK)} ISK`;
+
+    el.appendChild(buyLabel);
+    el.appendChild(buyValue);
+    el.appendChild(sep);
+    el.appendChild(sellLabel);
+    el.appendChild(sellValue);
+  };
+
+  // Restrict inputs to digits (extra guard for paste, IME, etc.)
+  const restrictNumberInputs = () => {
+    const inputs = document.querySelectorAll("input[type='number']");
+    inputs.forEach((input) => {
+      input.addEventListener("input", () => {
+        // Keep digits only; allow empty string so user can clear
+        input.value = input.value.replace(/[^0-9]/g, "");
+      });
+    });
+  };
+
+  // Format large ISK/SP numbers with spaces
+  const fmtNum = (n) => {
+    if (!Number.isFinite(n)) return "0";
+    return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  };
+
+  // ===== EVE rules: SP per injector based on current SP =====
+  function gainLargeBySP(currentSP) {
+    if (currentSP < 5_000_000) return 500_000;
+    if (currentSP < 50_000_000) return 400_000;
+    if (currentSP < 80_000_000) return 300_000;
+    return 150_000;
+  }
+  function gainSmallBySP(currentSP) {
+    return Math.floor(gainLargeBySP(currentSP) / 5);
   }
 
-  function calculateSPGain(){
-    show('spGainResult');
-    let sp = parseInt($('spOwned').value,10);
-    let large = parseInt($('largeInjectors').value,10) || 0;
-    let small = parseInt($('smallInjectors').value,10) || 0;
-    if (!Number.isFinite(sp) || sp < 1 || (large < 1 && small < 1)){ setText('resSPGained',''); return; }
-
-    let gain = 0;
-    for (let i=0;i<large;i++){ const g = getLargeGain(sp); gain += g; sp += g; }
-    for (let i=0;i<small;i++){ const g = getSmallGain(sp); gain += g; sp += g; }
-
-    setText('resSPGained', `${toISK(gain)} SP`);
+  function sumGain(currentSP, injectors, perInjectorFn) {
+    let sp = currentSP;
+    let total = 0;
+    for (let i = 0; i < injectors; i++) {
+      const g = perInjectorFn(sp);
+      total += g;
+      sp += g;
+    }
+    return total;
   }
 
-  async function calculateGoalInjectors(){
-    const prices = await fetchPrices();
-    show('goalResult');
-    if (!prices){ setText('goalNote','Prices unavailable. Please try again.'); return; }
+  function injectorsToTarget(currentSP, targetSP) {
+    let sp = currentSP;
+    let remaining = Math.max(0, targetSP - sp);
+    let large = 0;
+    let small = 0;
 
-    let currentSP = parseInt($('currentSPGoal').value,10);
-    let targetSP  = parseInt($('targetSPGoal').value,10);
-    if (!Number.isFinite(currentSP) || !Number.isFinite(targetSP) || currentSP < 1 || targetSP < 1 || targetSP <= currentSP){
-      setText('goalNote','Please enter valid numbers.'); return;
+    while (remaining > 0) {
+      const gL = gainLargeBySP(sp);
+      const gS = gainSmallBySP(sp);
+
+      if (remaining >= gL) {
+        large++; sp += gL; remaining -= gL;
+      } else if (remaining >= gS) {
+        small++; sp += gS; remaining -= gS;
+      } else {
+        small++; sp += gS; remaining = 0;
+      }
     }
-
-    let remaining = targetSP - currentSP, largeInjectors = 0, smallInjectors = 0;
-    while (remaining > 0){
-      const gainLarge = getLargeGain(currentSP);
-      const gainSmall = getSmallGain(currentSP);
-      if (remaining >= gainLarge){ largeInjectors++; currentSP += gainLarge; remaining -= gainLarge; }
-      else if (remaining >= gainSmall){ smallInjectors++; currentSP += gainSmall; remaining -= gainSmall; }
-      else { smallInjectors++; currentSP += gainSmall; remaining = 0; }
-    }
-
-    const L = prices[40520] || prices['40520'] || {buy:0,sell:0};
-    const S = prices[45635] || prices['45635'] || {buy:0,sell:0};
-    const totalBuy  = largeInjectors*(L.buy||0)  + smallInjectors*(S.buy||0);
-    const totalSell = largeInjectors*(L.sell||0) + smallInjectors*(S.sell||0);
-
-    setText('goalLarge', String(largeInjectors));
-    setText('goalSmall', String(smallInjectors));
-    setText('goalBuy',   `${toISK(totalBuy)} ISK`);
-    setText('goalSell',  `${toISK(totalSell)} ISK`);
-    setText('goalNote', `${largeInjectors} Large @ ${toISK(L.buy)} buy / ${toISK(L.sell)} sell` +
-                        (smallInjectors ? `, ${smallInjectors} Small @ ${toISK(S.buy)} buy / ${toISK(S.sell)} sell` : ''));
+    return { large, small, total: large + small };
   }
 
-  async function calculateExtractors(){
-    const prices = await fetchPrices();
-    show('extractorResult');
-    if (!prices){ setText('extNote','Prices unavailable. Please try again.'); return; }
+  function usableExtractors(currentSP) {
+    if (!Number.isFinite(currentSP) || currentSP <= 5_000_000) return 0;
+    return Math.max(0, Math.floor((currentSP - 5_000_000) / 500_000));
+  }
 
-    let sp = parseInt($('spExtract').value,10);
-    if (!Number.isFinite(sp) || sp < 5500000){
-      const body = $('profitBody'); clearChildren(body);
-      setText('extUsable',''); setText('extBuy',''); setText('extSell',''); setText('injBuy',''); setText('injSell','');
-      setText('extNote','Must have at least 5,500,000 SP to use skill extractors.');
+  // ===== Prices via REST (localized in PHP into window.EVE_SIC_DATA) =====
+  async function fetchPrices() {
+    try {
+      const url = (window.EVE_SIC_DATA && EVE_SIC_DATA.rest && EVE_SIC_DATA.rest.url) || "";
+      if (!url) return null;
+
+      const resp = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "X-WP-Nonce": (EVE_SIC_DATA && EVE_SIC_DATA.rest && EVE_SIC_DATA.rest.nonce) || "",
+        },
+        credentials: "same-origin",
+        cache: "no-cache",
+      });
+
+      if (!resp.ok) return null;
+      const data = await resp.json();
+      if (!data || typeof data !== "object") return null;
+
+      const out = {};
+      for (const k of Object.keys(data)) {
+        out[Number(k)] = {
+          buy: Number(data[k]?.buy || 0),
+          sell: Number(data[k]?.sell || 0),
+        };
+      }
+      return out;
+    } catch (e) {
+      console.error("Price fetch failed:", e);
+      return null;
+    }
+  }
+
+  // ===== Section A: How many Injectors do I need? =====
+  async function calculateRequiredInjectors() {
+    const currentSP = getInt("currentSP");
+    const injectSP = getInt("injectSP");
+
+    show("result");
+    setText("resNote", "");
+
+    if (!Number.isFinite(currentSP) || currentSP < 1 || !Number.isFinite(injectSP) || injectSP < 1) {
+      setText("resLarge", "");
+      setText("resSmall", "");
+      setText("resNote", "Please enter valid numbers.");
       return;
     }
 
-    const L = prices[40520] || prices['40520'] || {buy:0,sell:0};
-    const X = prices[40519] || prices['40519'] || {buy:0,sell:0};
+    const targetSP = currentSP + injectSP;
+    const plan = injectorsToTarget(currentSP, targetSP);
 
-    const usable = Math.floor((sp - 5500000) / 500000) + 1;
-    const extractorBuyTotal  = usable * (X.buy || 0);
-    const extractorSellTotal = usable * (X.sell|| 0);
-    const injectorBuyTotal   = usable * (L.buy || 0);
-    const injectorSellTotal  = usable * (L.sell|| 0);
+    setText("resLarge", String(plan.large));
+    setText("resSmall", String(plan.small));
 
-    setText('extUsable', String(usable));
-    setText('extBuy',  `${toISK(extractorBuyTotal)} ISK`);
-    setText('extSell', `${toISK(extractorSellTotal)} ISK`);
-    setText('injBuy',  `${toISK(injectorBuyTotal)} ISK`);
-    setText('injSell', `${toISK(injectorSellTotal)} ISK`);
-
-    const scenarios = [
-      ['Buy Extractors (Buy Value), Sell Injectors (Buy Value)',  injectorBuyTotal - extractorBuyTotal],
-      ['Buy Extractors (Buy Value), Sell Injectors (Sell Value)', injectorSellTotal - extractorBuyTotal],
-      ['Buy Extractors (Sell Value), Sell Injectors (Sell Value)',injectorSellTotal - extractorSellTotal],
-      ['Buy Extractors (Sell Value), Sell Injectors (Buy Value)', injectorBuyTotal - extractorSellTotal],
-    ];
-    const body = $('profitBody'); clearChildren(body);
-    scenarios.forEach(([label, profit]) => {
-      const tr = document.createElement('tr');
-      const td1 = document.createElement('td');
-      const td2 = document.createElement('td');
-
-      const idx = label.indexOf(',');
-      if (idx !== -1){
-        td1.appendChild(document.createTextNode(label.slice(0, idx + 1)));
-        td1.appendChild(document.createElement('br'));
-        td1.appendChild(document.createTextNode(label.slice(idx + 2)));
-      } else {
-        td1.textContent = label;
-      }
-
-      td2.textContent = `${toISK(profit)} ISK`;
-      tr.appendChild(td1); tr.appendChild(td2); body.appendChild(tr);
-    });
-
-    setText('extNote','');
+    const prices = await fetchPrices();
+    if (prices) {
+      const L = prices[40520] || { buy: 0, sell: 0 };
+      const S = prices[45635] || { buy: 0, sell: 0 };
+      const totalBuyISK  = plan.large * L.sell + plan.small * S.sell;
+      const totalSellISK = plan.large * L.buy  + plan.small * S.buy;
+      setBuySellNote("resNote", totalBuyISK, totalSellISK);
+    } else {
+      setText("resNote", "Buy: — · Sell: —");
+    }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('#eve-skill-calculators input[type="number"]').forEach(enforcePositiveIntegerInput);
-    $('btnCalcInjectors')?.addEventListener('click', calculateInjectors);
-    $('btnCalcSPGain')?.addEventListener('click', calculateSPGain);
-    $('btnCalcGoal')?.addEventListener('click', calculateGoalInjectors);
-    $('btnCalcExtractors')?.addEventListener('click', calculateExtractors);
+  // ===== Section B: SP gained from N injectors =====
+  function calculateSPGain() {
+    const spBase = getInt("spGain");
+    const count = getInt("injectorsGain");
+
+    show("gainResult");
+
+    if (!Number.isFinite(spBase) || spBase < 1 || !Number.isFinite(count) || count < 1) {
+      setText("gainLarge", "");
+      setText("gainSmall", "");
+      setText("gainNote", "Please enter valid numbers.");
+      return;
+    }
+
+    const totalLarge = sumGain(spBase, count, gainLargeBySP);
+    const totalSmall = sumGain(spBase, count, gainSmallBySP);
+
+    setText("gainLarge", `${fmtNum(totalLarge)} SP`);
+    setText("gainSmall", `${fmtNum(totalSmall)} SP`);
+
+    hideRow("gainTotal");
+    setText("gainTotal", "");
+    setText("gainNote", "");
+  }
+
+  // ===== Section C: Injectors needed to reach a Goal =====
+  async function calculateGoalInjectors() {
+    show("goalResult");
+
+    const currentSP = getInt("spGoalCurrent");
+    const targetSP = getInt("spGoalTarget");
+
+    if (!Number.isFinite(currentSP) || currentSP < 1 || !Number.isFinite(targetSP) || targetSP < 1) {
+      setText("goalLarge", "");
+      setText("goalSmall", "");
+      setText("goalNote", "Please enter valid numbers.");
+      return;
+    }
+
+    if (targetSP <= currentSP) {
+      setText("goalLarge", "0");
+      setText("goalSmall", "0");
+      setText("goalNote", "You are already at or above the target.");
+      hideRow("goalTotal");
+      setText("goalTotal", "");
+      return;
+    }
+
+    const plan = injectorsToTarget(currentSP, targetSP);
+
+    setText("goalLarge", String(plan.large));
+    setText("goalSmall", String(plan.small));
+
+    hideRow("goalTotal");
+    setText("goalTotal", "");
+
+    const prices = await fetchPrices();
+    if (prices) {
+      const L = prices[40520] || { buy: 0, sell: 0 };
+      const S = prices[45635] || { buy: 0, sell: 0 };
+      const totalBuyISK  = plan.large * L.sell + plan.small * S.sell;
+      const totalSellISK = plan.large * L.buy  + plan.small * S.buy;
+      setBuySellNote("goalNote", totalBuyISK, totalSellISK);
+    } else {
+      setText("goalNote", "Buy: — · Sell: —");
+    }
+  }
+
+  // ===== Section D: Skill Extractors Profit Check (four scenarios, break after "Value),") =====
+  async function calculateExtractorProfitability() {
+    const sp = getInt("spExtract");
+    show("extractorResult");
+
+    const tbody = $("profitBody");
+    clearChildren(tbody);
+
+    if (!Number.isFinite(sp) || sp < 1) {
+      setText("extUsable", "0");
+      setText("extBuy", "");
+      setText("injBuy", "");
+      setText("extSell", "");
+      setText("injSell", "");
+      setText("extNote", "");
+      return;
+    }
+
+    const prices = await fetchPrices();
+    if (!prices) {
+      setText("extUsable", "0");
+      setText("extBuy", "");
+      setText("injBuy", "");
+      setText("extSell", "");
+      setText("injSell", "");
+      setText("extNote", "");
+      return;
+    }
+
+    const usable = usableExtractors(sp);
+    setText("extUsable", String(usable));
+
+    const EXT = prices[40519] || { buy: 0, sell: 0 }; // Extractor
+    const INJ = prices[40520] || { buy: 0, sell: 0 }; // Large Injector
+
+    setText("extBuy",  `${fmtNum(EXT.buy)} ISK`);
+    setText("injBuy",  `${fmtNum(INJ.buy)} ISK`);
+    setText("extSell", `${fmtNum(EXT.sell)} ISK`);
+    setText("injSell", `${fmtNum(INJ.sell)} ISK`);
+
+    const per_buyExt_buyInj   = INJ.buy  - EXT.buy;
+    const per_buyExt_sellInj  = INJ.sell - EXT.buy;
+    const per_sellExt_sellInj = INJ.sell - EXT.sell;
+    const per_sellExt_buyInj  = INJ.buy  - EXT.sell;
+
+    const tot_buyExt_buyInj   = per_buyExt_buyInj   * usable;
+    const tot_buyExt_sellInj  = per_buyExt_sellInj  * usable;
+    const tot_sellExt_sellInj = per_sellExt_sellInj * usable;
+    const tot_sellExt_buyInj  = per_sellExt_buyInj  * usable;
+
+    appendTwoColRow(
+      tbody,
+      "Buy Extractors (Buy Value),\nSell Injectors (Buy Value)",
+      `${fmtNum(tot_buyExt_buyInj)} ISK`
+    );
+    appendTwoColRow(
+      tbody,
+      "Buy Extractors (Buy Value),\nSell Injectors (Sell Value)",
+      `${fmtNum(tot_buyExt_sellInj)} ISK`
+    );
+    appendTwoColRow(
+      tbody,
+      "Buy Extractors (Sell Value),\nSell Injectors (Sell Value)",
+      `${fmtNum(tot_sellExt_sellInj)} ISK`
+    );
+    appendTwoColRow(
+      tbody,
+      "Buy Extractors (Sell Value),\nSell Injectors (Buy Value)",
+      `${fmtNum(tot_sellExt_buyInj)} ISK`
+    );
+
+    setText("extNote", "");
+  }
+
+  // ===== Init =====
+  function onReady(fn) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", fn, { once: true });
+    } else {
+      fn();
+    }
+  }
+
+  onReady(() => {
+    restrictNumberInputs();
+
+    const wiring = [
+      ["btnCalcInjectors",  "click", () => calculateRequiredInjectors()],
+      ["btnCalcSPGain",     "click", calculateSPGain],
+      ["btnCalcGoal",       "click", () => calculateGoalInjectors()],
+      ["btnCalcExtractors", "click", () => calculateExtractorProfitability()],
+    ];
+
+    for (const [id, type, handler] of wiring) {
+      const el = $(id);
+      if (el) el.addEventListener(type, handler, { passive: true });
+    }
   });
 })();
