@@ -1,91 +1,139 @@
-/* ================================
-   EVE Skill Injector Calculator
-   (scoped, no generic selectors)
-   ================================ */
+/* EVE Skill Injector Calculator — centered styles */
 
+/* Palette & base */
 .eve-sic {
-  max-width: 520px;
-  margin: auto;
-}
+  --sic-primary: #2f2857;
+  --sic-text: #1f2030;
+  --sic-muted: #6b7280;
+  --sic-border: #e5e7eb;
+  --sic-bg-soft: #f6f7fb;
 
-.eve-sic__title { text-align: center; }
-
-.eve-sic__panel { margin-top: 12px; }
-.eve-sic__panel-title { text-align: center; margin: 0 0 8px; }
-
-/* Inputs */
-.eve-sic__label {
-  display: block;
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-.eve-sic__input {
-  width: 60%;
-  padding: 6px;
-  font-size: 1rem;
+  color: var(--sic-text);
+  max-width: 760px;
   margin: 0 auto;
+  padding: 24px 20px 48px;
+  line-height: 1.35;
+  text-align: center; /* center everything */
+}
+
+/* Headings */
+.eve-sic h1 {
+  color: var(--sic-primary);
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  margin: 0 0 18px;
+}
+.eve-sic h2 {
+  color: var(--sic-primary);
+  font-size: 32px;
+  font-weight: 800;
+  margin: 36px 0 14px;
+}
+
+/* Sections & rows */
+.sic-section + .sic-section { margin-top: 42px; }
+
+.sic-row { margin: 12px 0; }
+.sic-row label {
   display: block;
-  box-sizing: border-box;
+  font-weight: 700;
+  color: var(--sic-primary);
+  margin-bottom: 6px;
 }
-
-/* Remove number input arrows */
-.eve-sic__input.no-spinner::-webkit-outer-spin-button,
-.eve-sic__input.no-spinner::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.eve-sic__input.no-spinner { -moz-appearance: textfield; }
-
-/* Buttons */
-.eve-sic__btn {
-  width: 60%;
-  padding: 10px;
-  font-size: 1.1rem;
-  margin: 8px auto;
-  display: block;
-  background: #f0f0f0;
-  color: #000;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background .3s ease;
-  appearance: none;
-}
-.eve-sic__btn:hover { background: #e0e0e0; }
-
-/* Results (center everything) */
-.eve-sic__result {
-  margin-top: 10px;
-  font-weight: bold;
+.sic-row input[type="number"] {
+  width: 100%;
+  max-width: 320px;      /* smaller input width */
+  padding: 8px 10px;     /* tighter padding */
+  border: 1px solid var(--sic-border);
+  border-radius: 6px;
+  font-size: 15px;
+  background: #fff;
+  color: var(--sic-text);
+  margin: 0 auto;
   text-align: center;
 }
-.eve-sic__value { font-weight: normal; }
-.eve-sic__note { margin-top: 6px; font-weight: normal; font-size: 0.9rem; color: #444; }
 
-/* Metrics grid (extractor section) */
-.eve-sic__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
+/* Actions */
+.sic-actions { margin-top: 8px; }
+.sic-actions button {
+  padding: 10px 16px;
+  font-weight: 700;
+  border: 1px solid var(--sic-border);
+  border-radius: 8px;
+  background: #efeff6;
+  color: var(--sic-primary);
+  cursor: pointer;
 }
-.eve-sic__metric { text-align: center; }
+.sic-actions button:hover { filter: brightness(0.98); }
 
-/* Scenario table */
-.eve-sic__table {
-  width: 100%;
+/* Results */
+.sic-result { margin-top: 14px; }
+.sic-result .sic-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px 0;
+}
+.sic-result .sic-row span:first-child {
+  font-weight: 700;
+  color: var(--sic-primary);
+  margin-bottom: 3px;
+}
+
+/* Notes (Buy/Sell blocks) */
+.sic-note { margin-top: 10px; }
+.note-buy-sell .note-label { font-weight: 800; }
+
+/* ---------- Mini 2×2 grid (Extractor/Injector) ---------- */
+.sic-mini { margin: 10px auto 0; width: auto; max-width: 560px; }
+.eve-sic .sic-mini table {
   border-collapse: collapse;
-  margin-top: 10px;
+  border: 1px solid var(--sic-border);
+  margin: 0 auto;                 /* center table */
+  width: auto !important;         /* override theme width */
+  table-layout: auto;
 }
-.eve-sic__table th,
-.eve-sic__table td {
-  border-bottom: 1px solid #ccc;
-  padding: 6px 4px;
+.eve-sic .sic-mini thead th {
+  background: var(--sic-bg-soft);
+  color: var(--sic-primary);
+  font-weight: 800 !important;    /* force bold headings */
+  text-align: center !important;  /* center headings */
 }
+.eve-sic .sic-mini th,
+.eve-sic .sic-mini td {
+  border-bottom: 1px solid var(--sic-border);
+  padding: 10px 12px;
+  text-align: center !important;  /* center cell content */
+  vertical-align: middle;
+}
+.sic-mini tr:last-child td,
+.sic-mini tr:last-child th { border-bottom: 0; }
 
-/* Force headings bold + centered; body normal + centered */
-.eve-sic__table th { font-weight: bold !important; text-align: center !important; }
-.eve-sic__table td { font-weight: normal !important; text-align: center !important; }
+/* ---------- Main scenarios table ---------- */
+.sic-table { margin-top: 16px; }
+.eve-sic .sic-table table {
+  border-collapse: collapse;
+  border: 1px solid var(--sic-border);
+  margin: 0 auto;                 /* center table */
+  width: auto !important;         /* not full width */
+  max-width: 700px;               /* narrower overall */
+  table-layout: auto;
+}
+.eve-sic .sic-table thead th {
+  background: var(--sic-bg-soft);
+  color: var(--sic-primary);
+  font-weight: 800 !important;    /* force bold headings */
+  text-align: center !important;
+}
+.eve-sic .sic-table th,
+.eve-sic .sic-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--sic-border);
+  text-align: center !important;  /* center cell content */
+  vertical-align: middle;
+}
+.sic-table tr:last-child td { border-bottom: 0; }
 
-/* Hidden until calculated */
-.eve-sic .is-hidden { display: none !important; }
+/* Helpers */
+.is-hidden { display: none !important; }
