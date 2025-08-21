@@ -14,7 +14,6 @@
 
     <div id="result" class="eve-sic__result is-hidden" aria-hidden="true">
       <div><span>Large:</span> <span id="resLarge" class="eve-sic__value"></span></div>
-      <div><span>Medium:</span> <span id="resMedium" class="eve-sic__value"></span></div>
       <div><span>Small:</span> <span id="resSmall" class="eve-sic__value"></span></div>
       <div class="eve-sic__note"><span id="resNote"></span></div>
     </div>
@@ -34,7 +33,6 @@
 
     <div id="gainResult" class="eve-sic__result is-hidden" aria-hidden="true">
       <div><span>Large Injectors:</span> <span id="gainLarge" class="eve-sic__value"></span></div>
-      <div><span>Medium Injectors:</span> <span id="gainMedium" class="eve-sic__value"></span></div>
       <div><span>Small Injectors:</span> <span id="gainSmall" class="eve-sic__value"></span></div>
       <div><span>Total SP Gained:</span> <span id="gainTotal" class="eve-sic__value"></span></div>
       <div class="eve-sic__note"><span id="gainNote"></span></div>
@@ -55,7 +53,6 @@
 
     <div id="goalResult" class="eve-sic__result is-hidden" aria-hidden="true">
       <div><span>Large:</span> <span id="goalLarge" class="eve-sic__value"></span></div>
-      <div><span>Medium:</span> <span id="goalMedium" class="eve-sic__value"></span></div>
       <div><span>Small:</span> <span id="goalSmall" class="eve-sic__value"></span></div>
       <div><span>Total Injectors:</span> <span id="goalTotal" class="eve-sic__value"></span></div>
       <div class="eve-sic__note"><span id="goalNote"></span></div>
