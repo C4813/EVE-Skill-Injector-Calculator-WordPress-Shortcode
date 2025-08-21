@@ -1,107 +1,176 @@
-<?php defined('ABSPATH') || exit; ?>
-<div id="eve-skill-calculators" class="eve-sic">
-  <h2 class="eve-sic__title">Skill Injector Calculator</h2>
+<div class="eve-sic">
+  <h1>Skill Injector Calculator</h1>
 
-  <section class="eve-sic__panel">
-    <h3 class="eve-sic__panel-title">a. How many Injectors do I need?</h3>
-    <label class="eve-sic__label">Current Skill Points
-      <input type="number" id="currentSP" class="eve-sic__input no-spinner" min="1" step="1" inputmode="numeric" pattern="\d*">
-    </label>
-    <label class="eve-sic__label">Skill Points to inject
-      <input type="number" id="injectSP" class="eve-sic__input no-spinner" min="1" step="1" inputmode="numeric" pattern="\d*">
-    </label>
-    <button id="btnCalcInjectors" type="button" class="eve-sic__btn">Calculate Required Injectors</button>
+  <!-- A) How many Injectors do I need? -->
+  <section class="sic-section" id="section-need">
+    <h2>How many Injectors do I need?</h2>
 
-    <div id="result" class="eve-sic__result is-hidden" aria-hidden="true">
-      <div><span>Large:</span> <span id="resLarge" class="eve-sic__value"></span></div>
-      <div><span>Small:</span> <span id="resSmall" class="eve-sic__value"></span></div>
-      <div class="eve-sic__note"><span id="resNote"></span></div>
+    <div class="sic-row">
+      <label for="currentSP">Current SP</label>
+      <input type="number" id="currentSP" min="0" step="1" inputmode="numeric" />
+    </div>
+
+    <div class="sic-row">
+      <label for="injectSP">SP to add</label>
+      <input type="number" id="injectSP" min="0" step="1" inputmode="numeric" />
+    </div>
+
+    <div class="sic-actions">
+      <button id="btnCalcInjectors" type="button">Calculate Injectors</button>
+    </div>
+
+    <div id="result" class="sic-result is-hidden" aria-hidden="true">
+      <div class="sic-row">
+        <span>Large Injectors</span>
+        <span id="resLarge"></span>
+      </div>
+      <div class="sic-row">
+        <span>Small Injectors</span>
+        <span id="resSmall"></span>
+      </div>
+      <div class="sic-note">
+        <span id="resNote"></span>
+      </div>
     </div>
   </section>
 
-  <hr>
+  <!-- B) SP gained from N injectors -->
+  <section class="sic-section" id="section-gain">
+    <h2>SP gained from Injectors</h2>
 
-  <section class="eve-sic__panel">
-    <h3 class="eve-sic__panel-title">b. Skill Points gained from Injectors</h3>
-    <label class="eve-sic__label">Current Skill Points
-      <input type="number" id="spGain" class="eve-sic__input no-spinner" min="1" step="1" inputmode="numeric" pattern="\d*">
-    </label>
-    <label class="eve-sic__label">Number of Injectors
-      <input type="number" id="injectorsGain" class="eve-sic__input no-spinner" min="1" step="1" inputmode="numeric" pattern="\d*">
-    </label>
-    <button id="btnCalcSPGain" type="button" class="eve-sic__btn">Calculate SP Gain</button>
+    <div class="sic-row">
+      <label for="spGain">Current SP</label>
+      <input type="number" id="spGain" min="0" step="1" inputmode="numeric" />
+    </div>
 
-    <div id="gainResult" class="eve-sic__result is-hidden" aria-hidden="true">
-      <div><span>Large Injectors:</span> <span id="gainLarge" class="eve-sic__value"></span></div>
-      <div><span>Small Injectors:</span> <span id="gainSmall" class="eve-sic__value"></span></div>
-      <div><span>Total SP Gained:</span> <span id="gainTotal" class="eve-sic__value"></span></div>
-      <div class="eve-sic__note"><span id="gainNote"></span></div>
+    <div class="sic-row">
+      <label for="injectorsGain">Number of Injectors</label>
+      <input type="number" id="injectorsGain" min="0" step="1" inputmode="numeric" />
+    </div>
+
+    <div class="sic-actions">
+      <button id="btnCalcSPGain" type="button">Calculate SP gain</button>
+    </div>
+
+    <div id="gainResult" class="sic-result is-hidden" aria-hidden="true">
+      <div class="sic-row">
+        <span>Using Large Injectors</span>
+        <span id="gainLarge"></span>
+      </div>
+      <div class="sic-row">
+        <span>Using Small Injectors</span>
+        <span id="gainSmall"></span>
+      </div>
+      <!-- Script hides this row -->
+      <div class="sic-row">
+        <span>Total SP Gained</span>
+        <span id="gainTotal"></span>
+      </div>
+      <div class="sic-note">
+        <span id="gainNote"></span>
+      </div>
     </div>
   </section>
 
-  <hr>
+  <!-- C) Injectors to reach a Goal -->
+  <section class="sic-section" id="section-goal">
+    <h2>Injectors to reach a Goal</h2>
 
-  <section class="eve-sic__panel">
-    <h3 class="eve-sic__panel-title">c. Injectors needed to reach a Goal</h3>
-    <label class="eve-sic__label">Current Skill Points
-      <input type="number" id="spGoalCurrent" class="eve-sic__input no-spinner" min="1" step="1" inputmode="numeric" pattern="\d*">
-    </label>
-    <label class="eve-sic__label">Target Skill Points
-      <input type="number" id="spGoalTarget" class="eve-sic__input no-spinner" min="1" step="1" inputmode="numeric" pattern="\d*">
-    </label>
-    <button id="btnCalcGoal" type="button" class="eve-sic__btn">Calculate Injectors to Goal</button>
+    <div class="sic-row">
+      <label for="spGoalCurrent">Current SP</label>
+      <input type="number" id="spGoalCurrent" min="0" step="1" inputmode="numeric" />
+    </div>
 
-    <div id="goalResult" class="eve-sic__result is-hidden" aria-hidden="true">
-      <div><span>Large:</span> <span id="goalLarge" class="eve-sic__value"></span></div>
-      <div><span>Small:</span> <span id="goalSmall" class="eve-sic__value"></span></div>
-      <div><span>Total Injectors:</span> <span id="goalTotal" class="eve-sic__value"></span></div>
-      <div class="eve-sic__note"><span id="goalNote"></span></div>
+    <div class="sic-row">
+      <label for="spGoalTarget">Target SP</label>
+      <input type="number" id="spGoalTarget" min="0" step="1" inputmode="numeric" />
+    </div>
+
+    <div class="sic-actions">
+      <button id="btnCalcGoal" type="button">Calculate injectors to goal</button>
+    </div>
+
+    <div id="goalResult" class="sic-result is-hidden" aria-hidden="true">
+      <div class="sic-row">
+        <span>Large Injectors</span>
+        <span id="goalLarge"></span>
+      </div>
+      <div class="sic-row">
+        <span>Small Injectors</span>
+        <span id="goalSmall"></span>
+      </div>
+      <!-- Script hides this row -->
+      <div class="sic-row">
+        <span>Total Injectors</span>
+        <span id="goalTotal"></span>
+      </div>
+      <div class="sic-note">
+        <span id="goalNote"></span>
+      </div>
     </div>
   </section>
 
-  <hr>
+  <!-- D) Skill Extractors Profit Check -->
+  <section class="sic-section" id="section-extract">
+    <h2>Skill Extractors Profit Check</h2>
 
-  <section class="eve-sic__panel">
-    <h3 class="eve-sic__panel-title">d. Skill Extractors Profit Check</h3>
-    <label class="eve-sic__label">Current Skill Points
-      <input type="number" id="spExtract" class="eve-sic__input no-spinner" min="1" step="1" inputmode="numeric" pattern="\d*">
-    </label>
-    <button id="btnCalcExtractors" type="button" class="eve-sic__btn">Calculate Character Profitability</button>
+    <div class="sic-row">
+      <label for="spExtract">Current SP</label>
+      <input type="number" id="spExtract" min="0" step="1" inputmode="numeric" />
+    </div>
 
-    <div id="extractorResult" class="eve-sic__result is-hidden" aria-hidden="true">
-      <div><strong>Usable Extractors:</strong> <span id="extUsable" class="eve-sic__value"></span></div>
+    <div class="sic-actions">
+      <button id="btnCalcExtractors" type="button">Calculate Extractor Profit</button>
+    </div>
 
-      <div class="eve-sic__grid">
-        <div class="eve-sic__metric">
-          <div><strong>Extractor Buy:</strong></div>
-          <div id="extBuy" class="eve-sic__value"></div>
-        </div>
-        <div class="eve-sic__metric">
-          <div><strong>Injector Buy:</strong></div>
-          <div id="injBuy" class="eve-sic__value"></div>
-        </div>
-        <div class="eve-sic__metric">
-          <div><strong>Extractor Sell:</strong></div>
-          <div id="extSell" class="eve-sic__value"></div>
-        </div>
-        <div class="eve-sic__metric">
-          <div><strong>Injector Sell:</strong></div>
-          <div id="injSell" class="eve-sic__value"></div>
-        </div>
+    <div id="extractorResult" class="sic-result is-hidden" aria-hidden="true">
+
+      <!-- Usable Extractors ABOVE the price grid -->
+      <div class="sic-row">
+        <span>Usable Extractors</span>
+        <span id="extUsable"></span>
       </div>
 
-      <h4 class="eve-sic__subhead">Profit Scenarios</h4>
-      <table class="eve-sic__table" aria-label="Profit Scenarios">
-        <thead>
-          <tr>
-            <th scope="col">Scenario</th>
-            <th scope="col">Profit</th>
-          </tr>
-        </thead>
-        <tbody id="profitBody"></tbody>
-      </table>
+      <!-- Compact 2×2 price grid (IDs preserved for JS) -->
+      <div class="sic-mini">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Extractor</th>
+              <th>Injector</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Buy</th>
+              <td id="extBuy"></td>
+              <td id="injBuy"></td>
+            </tr>
+            <tr>
+              <th>Sell</th>
+              <td id="extSell"></td>
+              <td id="injSell"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <div class="eve-sic__note"><span id="extNote"></span></div>
+      <div class="sic-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Profit (ISK)</th>
+            </tr>
+          </thead>
+          <tbody id="profitBody"></tbody>
+        </table>
+      </div>
+
+      <div class="sic-note">
+        <span id="extNote"></span>
+      </div>
     </div>
   </section>
 </div>
